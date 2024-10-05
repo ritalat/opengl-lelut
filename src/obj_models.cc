@@ -7,7 +7,7 @@
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 const glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 

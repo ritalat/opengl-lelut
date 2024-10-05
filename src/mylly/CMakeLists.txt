@@ -63,6 +63,6 @@ target_compile_definitions(mylly PUBLIC GLAD_API_CALL_EXPORT
 target_include_directories(mylly PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}
                                         ${CMAKE_CURRENT_SOURCE_DIR}/glad/include)
 
-target_link_libraries(mylly SDL2::SDL2
+target_link_libraries(mylly SDL3::SDL3
                             glm::glm
                             single_header)

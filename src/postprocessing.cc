@@ -7,7 +7,7 @@
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include <stdexcept>
 
@@ -162,8 +162,8 @@ PostProcessing::~PostProcessing()
 Status PostProcessing::event(SDL_Event &event)
 {
     switch (event.type) {
-        case SDL_KEYUP:
-            if (SDL_SCANCODE_RETURN == event.key.keysym.scancode) {
+        case SDL_EVENT_KEY_UP:
+            if (SDL_SCANCODE_RETURN == event.key.scancode) {
                 int tmp = static_cast<int>(m_currentEffect);
                 ++tmp;
                 if (tmp >= static_cast<int>(EFFECT_END))
@@ -171,15 +171,9 @@ Status PostProcessing::event(SDL_Event &event)
                 m_currentEffect = static_cast<Effect>(tmp);
             }
             break;
-        case SDL_WINDOWEVENT:
+        case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
             if (event.window.windowID == SDL_GetWindowID(m_window)) {
-                switch (event.window.event) {
-                    case SDL_WINDOWEVENT_SIZE_CHANGED:
-                        recreate_framebuffer();
-                        break;
-                    default:
-                        break;
-                }
+                recreate_framebuffer();
             }
             break;
         default:

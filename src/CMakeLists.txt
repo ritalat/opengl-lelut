@@ -48,6 +48,5 @@ function(create_sample name)
         target_compile_options(${name} PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
     endif()
 
-    target_link_libraries(${name} mylly
-                                  SDL2::SDL2main)
+    target_link_libraries(${name} mylly)
 endfunction()

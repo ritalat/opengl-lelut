@@ -3,7 +3,9 @@
 #include "gllelu.hh"
 
 #include "glm/glm.hpp"
-#include "SDL.h"
+#include "SDL3/SDL.h"
+
+#include <cstdint>
 
 enum class Status
 {
@@ -35,17 +37,17 @@ public:
     virtual int main_loop() final;
     void iterate();
     virtual Status event(SDL_Event &event);
-    virtual Status update(unsigned int deltaTime);
+    virtual Status update(uint64_t deltaTime);
     virtual Status render() = 0;
     void find_gamepad();
 
     glm::mat4 m_view;
     glm::mat4 m_projection;
     Camera m_camera;
-    SDL_GameController *m_gamepad;
+    SDL_Gamepad *m_gamepad;
     SDL_JoystickID m_gamepadId;
-    unsigned int m_deltaTime;
-    unsigned int m_lastFrame;
+    uint64_t m_deltaTime;
+    uint64_t m_lastFrame;
     bool m_quit;
     int m_exitStatus;
 };

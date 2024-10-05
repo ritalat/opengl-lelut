@@ -3,7 +3,7 @@
 #include "shader.hh"
 
 #include "glad/gl.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include <cmath>
 #include <cstdio>
@@ -60,11 +60,11 @@ int HelloTriangle::main_loop()
     while (!quit) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-                case SDL_QUIT:
+                case SDL_EVENT_QUIT:
                     quit = true;
                     break;
-                case SDL_KEYUP:
-                    if (SDL_SCANCODE_ESCAPE == event.key.keysym.scancode)
+                case SDL_EVENT_KEY_UP:
+                    if (SDL_SCANCODE_ESCAPE == event.key.scancode)
                         quit = true;
                     break;
                 default:

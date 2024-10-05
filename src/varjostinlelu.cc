@@ -4,8 +4,9 @@
 #include "text_bitmap.hh"
 
 #include "glad/gl.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <optional>
@@ -48,7 +49,7 @@ VarjostinLelu::~VarjostinLelu()
 int VarjostinLelu::main_loop()
 {
     std::string notification;
-    unsigned int notificationExpiration = 0;
+    uint64_t notificationExpiration = 0;
 
     TextRendererLatin1 txt(m_fbSize.width, m_fbSize.height, "font8x8.png");
 
@@ -81,14 +82,14 @@ int VarjostinLelu::main_loop()
     while (!quit) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-                case SDL_QUIT:
+                case SDL_EVENT_QUIT:
                     quit = true;
                     break;
-                case SDL_KEYUP:
-                    if (SDL_SCANCODE_ESCAPE == event.key.keysym.scancode)
+                case SDL_EVENT_KEY_UP:
+                    if (SDL_SCANCODE_ESCAPE == event.key.scancode)
                         quit = true;
 
-                    if (SDL_SCANCODE_RETURN == event.key.keysym.scancode) {
+                    if (SDL_SCANCODE_RETURN == event.key.scancode) {
                         notification = "Reloading shaders...";
                         notificationExpiration = SDL_GetTicks() + 2000;
                         load_shaders();
@@ -106,9 +107,9 @@ int VarjostinLelu::main_loop()
             m_leluShader->use();
 
             m_leluShader->set_vec2("u_resolution", static_cast<float>(m_fbSize.width), static_cast<float>(m_fbSize.height));
-            int x, y;
+            float x, y;
             SDL_GetMouseState(&x, &y);
-            m_leluShader->set_vec2("u_mouse", static_cast<float>(x), static_cast<float>(m_fbSize.height - y));
+            m_leluShader->set_vec2("u_mouse", x, static_cast<float>(m_fbSize.height) - y);
             m_leluShader->set_float("u_time", static_cast<float>(SDL_GetTicks()) / 1000.0f);
 
             glBindVertexArray(leluVAO);

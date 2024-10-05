@@ -8,7 +8,7 @@
 #include "glad/gl.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -205,8 +205,8 @@ LGL_2::~LGL_2()
 Status LGL_2::event(SDL_Event &event)
 {
     switch (event.type) {
-        case SDL_KEYUP:
-            if (SDL_SCANCODE_RETURN == event.key.keysym.scancode)
+        case SDL_EVENT_KEY_UP:
+            if (SDL_SCANCODE_RETURN == event.key.scancode)
                 m_enableSpotLight = !m_enableSpotLight;
             break;
         default:

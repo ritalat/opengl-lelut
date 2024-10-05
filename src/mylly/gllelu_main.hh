@@ -1,11 +1,13 @@
 #pragma once
 
-#if defined(WIN32) && defined(NDEBUG)
+#include "SDL3/SDL.h"
+#include "SDL3/SDL_main.h"
 
-#include "SDL.h"
 #include <cstdio>
 #include <cstdlib>
 #include <exception>
+
+#if defined(WIN32) && defined(NDEBUG)
 
 #define GLLELU_MAIN_IMPLEMENTATION(Lelu)                                                        \
 class Lelu;                                                                                     \
@@ -22,10 +24,6 @@ int main(int argc, char *argv[])                                                
 }                                                                                               \
 
 #else
-
-#include <cstdio>
-#include <cstdlib>
-#include <exception>
 
 #define GLLELU_MAIN_IMPLEMENTATION(Lelu)                          \
 class Lelu;                                                       \

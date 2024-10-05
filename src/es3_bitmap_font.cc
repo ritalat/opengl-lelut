@@ -7,7 +7,7 @@
 #include <emscripten/emscripten.h>
 #endif
 #include "glad/gles2.h"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -70,11 +70,11 @@ void BitmapFontES3::iterate()
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         switch (event.type) {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 quit = true;
                 break;
-            case SDL_KEYUP:
-                if (SDL_SCANCODE_ESCAPE == event.key.keysym.scancode)
+            case SDL_EVENT_KEY_UP:
+                if (SDL_SCANCODE_ESCAPE == event.key.scancode)
                     quit = true;
                 break;
             default:
@@ -101,19 +101,20 @@ void BitmapFontES3::iterate()
     txt.draw_string(250 + static_cast<int>(100.0f * sin(static_cast<float>(SDL_GetTicks()) / 1000.0f)),
                     m_fbSize.height / 2, aakkosia);
 
-    int x, y;
+    float x, y;
     unsigned int buttons = SDL_GetMouseState(&x, &y);
-    if (buttons & SDL_BUTTON(SDL_BUTTON_LEFT)) {
+    if (buttons & SDL_BUTTON_MASK(SDL_BUTTON_LEFT)) {
         txt.set_color(0.0f, 1.0f, 0.0f);
-    } else if (buttons & SDL_BUTTON(SDL_BUTTON_RIGHT)) {
+    } else if (buttons & SDL_BUTTON_MASK(SDL_BUTTON_RIGHT)) {
         txt.set_color(0.0f, 0.0f, 1.0f);
-    } else if (buttons & SDL_BUTTON(SDL_BUTTON_MIDDLE)) {
+    } else if (buttons & SDL_BUTTON_MASK(SDL_BUTTON_MIDDLE)) {
         txt.set_color(1.0f, 0.0f, 0.0f);
     } else {
         txt.set_color(1.0f, 1.0f, 1.0f);
     }
     txt.set_scale(1.0f);
-    std::string mouse = "Mouse state: (" + std::to_string(x) + "," + std::to_string(y) + ")";
+    std::string mouse = "Mouse state: (" + std::to_string(static_cast<int>(x))
+                        + "," + std::to_string(static_cast<int>(y)) + ")";
     txt.draw_string(0, m_fbSize.height - FONT_SIZE, mouse);
 
     SDL_GL_SwapWindow(m_window);

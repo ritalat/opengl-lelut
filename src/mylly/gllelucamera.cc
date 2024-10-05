@@ -10,9 +10,10 @@
 #endif
 #include "glm/glm.hpp"
 #include "glm/gtc/matrix_transform.hpp"
-#include "SDL.h"
+#include "SDL3/SDL.h"
 
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 
 #if defined(__EMSCRIPTEN__)
@@ -25,7 +26,7 @@ void browser_callback(void *arg)
 GLleluCamera::GLleluCamera(int argc, char *argv[], GLVersion glVersion):
     GLlelu(argc, argv, glVersion),
     m_gamepad(NULL),
-    m_gamepadId(-1),
+    m_gamepadId(0),
     m_deltaTime(0),
     m_lastFrame(0),
     m_quit(false),
@@ -37,7 +38,7 @@ GLleluCamera::GLleluCamera(int argc, char *argv[], GLVersion glVersion):
 GLleluCamera::~GLleluCamera()
 {
     if (m_gamepad)
-        SDL_GameControllerClose(m_gamepad);
+        SDL_CloseGamepad(m_gamepad);
 }
 
 int GLleluCamera::main_loop()
@@ -58,7 +59,7 @@ int GLleluCamera::main_loop()
 
 void GLleluCamera::iterate()
 {
-    unsigned int currentFrame = SDL_GetTicks();
+    uint64_t currentFrame = SDL_GetTicks();
     m_deltaTime = currentFrame - m_lastFrame;
     m_lastFrame = currentFrame;
     float deltaf = static_cast<float>(m_deltaTime);
@@ -68,20 +69,20 @@ void GLleluCamera::iterate()
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         switch (e.type) {
-            case SDL_QUIT:
+            case SDL_EVENT_QUIT:
                 m_quit = true;
                 break;
 
-            case SDL_KEYUP:
-                if (SDL_SCANCODE_ESCAPE == e.key.keysym.scancode)
+            case SDL_EVENT_KEY_UP:
+                if (SDL_SCANCODE_ESCAPE == e.key.scancode)
                     m_quit = true;
-                if (SDL_SCANCODE_F == e.key.keysym.scancode)
+                if (SDL_SCANCODE_F == e.key.scancode)
                     window_fullscreen(!m_fullscreen);
-                if (SDL_SCANCODE_G == e.key.keysym.scancode)
+                if (SDL_SCANCODE_G == e.key.scancode)
                     window_grab(!m_mouseGrab);
                 break;
 
-            case SDL_MOUSEMOTION:
+            case SDL_EVENT_MOUSE_MOTION:
                 if (m_mouseGrab || SDL_BUTTON_LMASK & e.motion.state) {
                     m_camera.yaw += static_cast<float>(e.motion.xrel) * m_camera.sensitivity;
                     m_camera.pitch -= static_cast<float>(e.motion.yrel) * m_camera.sensitivity;
@@ -92,7 +93,7 @@ void GLleluCamera::iterate()
                 }
                 break;
 
-            case SDL_MOUSEWHEEL:
+            case SDL_EVENT_MOUSE_WHEEL:
                 m_camera.fov -= float(e.wheel.y);
                 if (m_camera.fov < 1.0f)
                     m_camera.fov = 1.0f;
@@ -100,28 +101,41 @@ void GLleluCamera::iterate()
                     m_camera.fov = 100.0f;
                 break;
 
-            case SDL_CONTROLLERBUTTONUP:
-                if (m_gamepad && e.cbutton.which == m_gamepadId) {
-                    if (SDL_CONTROLLER_BUTTON_B == e.cbutton.button)
+            case SDL_EVENT_GAMEPAD_BUTTON_UP:
+                if (m_gamepad && e.gbutton.which == m_gamepadId) {
+                    if (SDL_GAMEPAD_BUTTON_EAST == e.gbutton.button)
                         m_quit = true;
-                    if (SDL_CONTROLLER_BUTTON_Y == e.cbutton.button)
+                    if (SDL_GAMEPAD_BUTTON_NORTH == e.gbutton.button)
                         window_fullscreen(!m_fullscreen);
                 }
                 break;
 
-            case SDL_CONTROLLERDEVICEADDED:
+            case SDL_EVENT_GAMEPAD_ADDED:
                 if (!m_gamepad) {
-                    m_gamepad = SDL_GameControllerOpen(e.cdevice.which);
-                    m_gamepadId = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_gamepad));
+                    m_gamepad = SDL_OpenGamepad(e.gdevice.which);
+                    m_gamepadId = SDL_GetJoystickID(SDL_GetGamepadJoystick(m_gamepad));
                 }
                 break;
 
-            case SDL_CONTROLLERDEVICEREMOVED:
+            case SDL_EVENT_GAMEPAD_REMOVED:
                 if (m_gamepad && e.cdevice.which == m_gamepadId) {
-                    SDL_GameControllerClose(m_gamepad);
+                    SDL_CloseGamepad(m_gamepad);
                     m_gamepad = NULL;
-                    m_gamepadId = -1;
+                    m_gamepadId = 0;
                     find_gamepad();
+                }
+                break;
+
+            case SDL_EVENT_WINDOW_RESIZED:
+                if (e.window.windowID == SDL_GetWindowID(m_window)) {
+                    SDL_GetWindowSize(m_window, &m_windowSize.width, &m_windowSize.height);
+                }
+                break;
+
+            case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+                if (e.window.windowID == SDL_GetWindowID(m_window)) {
+                    SDL_GetWindowSizeInPixels(m_window, &m_fbSize.width, &m_fbSize.height);
+                    glViewport(0, 0, m_fbSize.width, m_fbSize.height);
                 }
                 break;
 
@@ -150,7 +164,7 @@ void GLleluCamera::iterate()
     m_camera.up = glm::normalize(glm::cross(m_camera.right, m_camera.front));
 
     bool keyboardMovement = false;
-    const Uint8 *keystates = SDL_GetKeyboardState(NULL);
+    const bool *keystates = SDL_GetKeyboardState(NULL);
 
     if (keystates[SDL_SCANCODE_LSHIFT]) {
         cameraSpeedScaled *= 2.0f;
@@ -182,13 +196,13 @@ void GLleluCamera::iterate()
     }
 
     if (m_gamepad && !keyboardMovement) {
-        if (SDL_GameControllerGetButton(m_gamepad, SDL_CONTROLLER_BUTTON_A)) {
+        if (SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_SOUTH)) {
             cameraSpeedScaled *= 2.0f;
         }
-        if (SDL_GameControllerGetButton(m_gamepad, SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)) {
+        if (SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER)) {
             m_camera.fov -= (0.1f * deltaf);
         }
-        if (SDL_GameControllerGetButton(m_gamepad, SDL_CONTROLLER_BUTTON_LEFTSHOULDER)) {
+        if (SDL_GetGamepadButton(m_gamepad, SDL_GAMEPAD_BUTTON_LEFT_SHOULDER)) {
             m_camera.fov += (0.1f * deltaf);
         }
         if (m_camera.fov < 1.0f) {
@@ -201,29 +215,29 @@ void GLleluCamera::iterate()
         auto scale_axis = [](Sint16 axis){ return axis / 32767.0f; };
         Sint16 axis = 0;
 
-        axis = SDL_GameControllerGetAxis(m_gamepad, SDL_CONTROLLER_AXIS_TRIGGERRIGHT);
+        axis = SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHT_TRIGGER);
         if (axis > m_camera.deadzone) {
             m_camera.position += cameraSpeedScaled * m_camera.worldUp * scale_axis(axis);
         }
-        axis = SDL_GameControllerGetAxis(m_gamepad, SDL_CONTROLLER_AXIS_TRIGGERLEFT);
+        axis = SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFT_TRIGGER);
         if (axis > m_camera.deadzone) {
             m_camera.position -= cameraSpeedScaled * m_camera.worldUp * scale_axis(axis);
         }
 
-        axis = SDL_GameControllerGetAxis(m_gamepad, SDL_CONTROLLER_AXIS_LEFTX);
+        axis = SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTX);
         if (abs(axis) > m_camera.deadzone) {
             m_camera.position += cameraSpeedScaled * m_camera.right * scale_axis(axis);
         }
-        axis = SDL_GameControllerGetAxis(m_gamepad, SDL_CONTROLLER_AXIS_LEFTY);
+        axis = SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_LEFTY);
         if (abs(axis) > m_camera.deadzone) {
             m_camera.position -= cameraSpeedScaled * m_camera.front * scale_axis(axis);
         }
 
-        axis = SDL_GameControllerGetAxis(m_gamepad, SDL_CONTROLLER_AXIS_RIGHTX);
+        axis = SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTX);
         if (abs(axis) > m_camera.deadzone) {
             m_camera.yaw += cameraSensitivityScaled * scale_axis(axis);
         }
-        axis = SDL_GameControllerGetAxis(m_gamepad, SDL_CONTROLLER_AXIS_RIGHTY);
+        axis = SDL_GetGamepadAxis(m_gamepad, SDL_GAMEPAD_AXIS_RIGHTY);
         if (abs(axis) > m_camera.deadzone) {
             m_camera.pitch -= cameraSensitivityScaled * scale_axis(axis);
         }
@@ -259,7 +273,7 @@ Status GLleluCamera::event(SDL_Event &event)
     return Status::Ok;
 }
 
-Status GLleluCamera::update(unsigned int deltaTime)
+Status GLleluCamera::update(uint64_t deltaTime)
 {
     (void)deltaTime;
     return Status::Ok;
@@ -267,12 +281,16 @@ Status GLleluCamera::update(unsigned int deltaTime)
 
 void GLleluCamera::find_gamepad()
 {
-    int numJoysticks = SDL_NumJoysticks();
-    for (int i = 0; i < numJoysticks; ++i) {
-        if (SDL_IsGameController(i)) {
-            m_gamepad = SDL_GameControllerOpen(i);
-            m_gamepadId = SDL_JoystickInstanceID(SDL_GameControllerGetJoystick(m_gamepad));
-            break;
+    int numJoysticks;
+    SDL_JoystickID *joysticks = SDL_GetJoysticks(&numJoysticks);
+    if (joysticks) {
+        for (int i = 0; i < numJoysticks; ++i) {
+            if (SDL_IsGamepad(i)) {
+                m_gamepad = SDL_OpenGamepad(i);
+                m_gamepadId = SDL_GetJoystickID(SDL_GetGamepadJoystick(m_gamepad));
+                break;
+            }
         }
+        SDL_free(joysticks);
     }
 }
