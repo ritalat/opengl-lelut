@@ -28,7 +28,8 @@ GLlelu::GLlelu(int argc, char *argv[], GLVersion glVersion):
     m_windowSize({ WINDOW_WIDTH, WINDOW_HEIGHT }),
     m_fullscreen(false),
     m_mouseGrab(false),
-    m_windowedMouseGrab(false)
+    m_windowedMouseGrab(false),
+    m_gamepad(nullptr)
 {
 #if defined(USE_GLES)
     (void)glVersion;
@@ -96,6 +97,10 @@ GLlelu::GLlelu(int argc, char *argv[], GLVersion glVersion):
 #else
     if (!gladLoadGL((GLADloadfunc) SDL_GL_GetProcAddress))
         throw std::runtime_error("Failed to load OpenGL functions");
+#endif
+
+#if defined(__ANDROID__)
+    windowFullscreen(true);
 #endif
 
     SDL_GetWindowSizeInPixels(m_window, &m_fbSize.width, &m_fbSize.height);

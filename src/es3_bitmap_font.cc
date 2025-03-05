@@ -10,6 +10,12 @@
 #include <cstdlib>
 #include <string>
 
+#if defined(__ANDROID__)
+#define SCALE 2
+#else
+#define SCALE 1
+#endif
+
 class BitmapFontES3: public GLlelu
 {
 public:
@@ -23,7 +29,6 @@ private:
     std::string m_fontLoaded;
     std::string m_glInfoDump;
     std::string m_aakkosia;
-    bool m_quit;
 };
 
 BitmapFontES3::BitmapFontES3(int argc, char *argv[]):
@@ -34,8 +39,7 @@ BitmapFontES3::BitmapFontES3(int argc, char *argv[]):
                  "OpenGL renderer: " + std::string((char *)glGetString(GL_RENDERER)) + '\n' +
                  "OpenGL version: " + std::string((char *)glGetString(GL_VERSION)) + '\n' +
                  "OpenGL Shading Language version: " + std::string((char *)glGetString(GL_SHADING_LANGUAGE_VERSION))),
-    m_aakkosia("Ääkkösetkin toimii :---DD"),
-    m_quit(false)
+    m_aakkosia("Ääkkösetkin toimii :---DD")
 {
 }
 
@@ -64,19 +68,19 @@ SDL_AppResult BitmapFontES3::iterate()
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 
-    int width = fbSize().width;
-    int height = fbSize().height;
+    SDL_Rect safe;
+    SDL_GetWindowSafeArea(SDL_GetWindowFromID(windowId()), &safe);
 
     m_txt.setColor(1.0f, 1.0f, 1.0f);
-    m_txt.setScale(1.0f);
-    m_txt.drawString(0, 0, m_glInfoDump);
-    m_txt.drawString(width - static_cast<int>(m_fontLoaded.length()) * FONT_SIZE,
-                     height - FONT_SIZE, m_fontLoaded);
+    m_txt.setScale(1.0f * SCALE);
+    m_txt.drawString(safe.x, safe.y, m_glInfoDump);
+    m_txt.drawString(safe.w - static_cast<int>(m_fontLoaded.length()) * FONT_SIZE * SCALE,
+                     safe.h - FONT_SIZE * SCALE, m_fontLoaded);
 
     m_txt.setColor(1.0f, 0.0f, 0.0f);
-    m_txt.setScale(2.5f);
-    m_txt.drawString(250 + static_cast<int>(100.0f * sin(static_cast<float>(SDL_GetTicks()) / 1000.0f)),
-                     height / 2, m_aakkosia);
+    m_txt.setScale(2.5f * SCALE);
+    m_txt.drawString(safe.x + 250 + static_cast<int>(100.0f * sin(static_cast<float>(SDL_GetTicks()) / 1000.0f)),
+                     safe.h / 2, m_aakkosia);
 
     float x, y;
     unsigned int buttons = SDL_GetMouseState(&x, &y);
@@ -89,10 +93,10 @@ SDL_AppResult BitmapFontES3::iterate()
     } else {
         m_txt.setColor(1.0f, 1.0f, 1.0f);
     }
-    m_txt.setScale(1.0f);
+    m_txt.setScale(1.0f * SCALE);
     std::string mouse = "Mouse state: (" + std::to_string(static_cast<int>(x))
                         + "," + std::to_string(static_cast<int>(y)) + ")";
-    m_txt.drawString(0, height - FONT_SIZE, mouse);
+    m_txt.drawString(safe.x, safe.h - FONT_SIZE * SCALE, mouse);
 
     return GLlelu::iterate();
 }

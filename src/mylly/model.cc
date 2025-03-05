@@ -10,8 +10,14 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm.hpp"
 #include "glm/gtx/hash.hpp"
+#if defined(__ANDROID__)
+#include "SDL3/SDL.h"
+#endif
 #include "tiny_obj_loader.h"
 
+#if defined(__ANDROID__)
+#include <sstream>
+#endif
 #include <stdexcept>
 #include <string>
 #include <string_view>
@@ -46,7 +52,16 @@ Model::Model(std::string_view file):
     std::string warn;
     std::string err;
 
+#if defined(__ANDROID__)
+    char *objData = (char *)SDL_LoadFile(cpath(objPath), NULL);
+    if (!objData)
+        throw std::runtime_error("Failed to read file: " + std::string(file));
+    std::istringstream strstream(objData);
+    tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, &strstream);
+    SDL_free(objData);
+#else
     tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, cpath(objPath), cpath(assetdir()));
+#endif
 
     if (!warn.empty())
         fprintf(stderr, "TinyObj warn: %s\n", warn.c_str());

@@ -27,13 +27,11 @@ private:
     Shader m_triangleShader;
     unsigned int m_VAO;
     unsigned int m_VBO;
-    bool m_quit;
 };
 
 TriangleES3::TriangleES3(int argc, char *argv[]):
     GLlelu(argc, argv),
-    m_triangleShader("es3_triangle.vert", "es3_triangle.frag"),
-    m_quit(false)
+    m_triangleShader("es3_triangle.vert", "es3_triangle.frag")
 {
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
@@ -59,7 +57,6 @@ TriangleES3::~TriangleES3()
 
 SDL_AppResult TriangleES3::iterate()
 {
-
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
 

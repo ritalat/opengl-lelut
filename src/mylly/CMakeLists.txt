@@ -21,7 +21,7 @@ set(HEADERS api_decl.hh
             text_bitmap.hh
             texture.hh)
 
-if(EMSCRIPTEN OR USE_GLES)
+if(EMSCRIPTEN OR ANDROID OR USE_GLES)
     list(APPEND SOURCES glad/src/gles2.c)
     list(APPEND HEADERS glad/include/glad/gles2.h
                         glad/include/KHR/khrplatform.h)
@@ -42,7 +42,7 @@ if(WIN32)
     set_target_properties(mylly PROPERTIES PREFIX "")
 endif()
 
-if(UNIX AND NOT EMSCRIPTEN)
+if(UNIX AND NOT EMSCRIPTEN AND NOT ANDROID)
     target_compile_options(mylly PRIVATE "-fvisibility=hidden")
     target_link_options(mylly PUBLIC "-Wl,--enable-new-dtags")
     set_target_properties(mylly PROPERTIES INSTALL_RPATH "\${ORIGIN}")
@@ -51,7 +51,7 @@ endif()
 if(MSVC)
     target_compile_options(mylly PRIVATE /W4 /wd4251)
     target_compile_definitions(mylly PRIVATE _CRT_SECURE_NO_WARNINGS)
-elseif(NOT EMSCRIPTEN)
+elseif(NOT EMSCRIPTEN AND NOT ANDROID)
     target_compile_options(mylly PRIVATE -Wall -Wextra -Wpedantic -Wconversion)
 endif()
 

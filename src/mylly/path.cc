@@ -1,5 +1,9 @@
 #include "path.hh"
 
+#if defined(__ANDROID__)
+#include "SDL3/SDL.h"
+#endif
+
 #include <cstdio>
 #include <filesystem>
 #include <fstream>
@@ -21,12 +25,20 @@ Path datadir()
 
 Path assetdir()
 {
+#if defined(__ANDROID__)
+    return "";
+#else
     return BASE_DIR / "assets";
+#endif
 }
 
 Path shaderdir()
 {
+#if defined(__ANDROID__)
+    return "";
+#else
     return BASE_DIR / "shaders";
+#endif
 }
 
 Path getPath(std::string_view file)
@@ -46,6 +58,14 @@ Path getShaderPath(std::string_view file)
 
 std::string slurpFile(const Path &path)
 {
+#if defined(__ANDROID__)
+    char *contents = (char *)SDL_LoadFile(cpath(path), NULL);
+    if (!contents)
+        throw std::runtime_error("Failed to read file: " + std::string(path));
+    std::string s(contents);
+    SDL_free(contents);
+    return s;
+#else
     std::ifstream stream(path);
 
     if (!stream)
@@ -53,4 +73,5 @@ std::string slurpFile(const Path &path)
 
     return std::string( (std::istreambuf_iterator<char>(stream)),
                         (std::istreambuf_iterator<char>()) );
+#endif
 }

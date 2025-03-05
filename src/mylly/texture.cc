@@ -7,6 +7,9 @@
 #else
 #include "glad/gl.h"
 #endif
+#if defined(__ANDROID__)
+#include "SDL3/SDL.h"
+#endif
 #include "stb_image.h"
 
 #include <array>
@@ -38,7 +41,17 @@ Texture::Texture(std::string_view file, bool flip):
 
     int width, height, nrChannels;
     Path texturePath = getAssetPath(file);
+
+#if defined(__ANDROID__)
+    size_t imgSize;
+    unsigned char *imgData = (unsigned char *)SDL_LoadFile(cpath(texturePath), &imgSize);
+    if (!imgData)
+        throw std::runtime_error("Failed to read file: " + std::string(file));
+    unsigned char *data = stbi_load_from_memory(imgData, (int)imgSize, &width, &height, &nrChannels, 0);
+    SDL_free(imgData);
+#else
     unsigned char *data = stbi_load(cpath(texturePath), &width, &height, &nrChannels, 0);
+#endif
 
     if (!data)
         throw std::runtime_error("Failed to load texture: " + texturePath.string() + FILE_ERROR_HINT);
@@ -106,7 +119,17 @@ Cubemap::Cubemap(const std::array<std::string_view, 6> &files):
     for (size_t i = 0; i < files.size(); ++i) {
         int width, height, nrChannels;
         Path texturePath = getAssetPath(files[i]);
+
+#if defined(__ANDROID__)
+        size_t imgSize;
+        unsigned char *imgData = (unsigned char *)SDL_LoadFile(cpath(texturePath), &imgSize);
+        if (!imgData)
+            throw std::runtime_error("Failed to read file: " + std::string(files[i]));
+        unsigned char *data = stbi_load_from_memory(imgData, (int)imgSize, &width, &height, &nrChannels, 0);
+        SDL_free(imgData);
+#else
         unsigned char *data = stbi_load(cpath(texturePath), &width, &height, &nrChannels, 0);
+#endif
 
         if (!data)
             throw std::runtime_error("Failed to load texture: " + texturePath.string() + FILE_ERROR_HINT);
