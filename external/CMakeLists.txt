@@ -1,10 +1,13 @@
 cmake_minimum_required(VERSION 3.16)
 
-if(NOT EMSCRIPTEN)
-    set(SDL_STATIC OFF CACHE BOOL "...")
+if(NOT SYSTEM_SDL)
+    if(NOT EMSCRIPTEN)
+        set(SDL_STATIC OFF CACHE BOOL "...")
+    endif()
+    set(SDL_TEST OFF CACHE BOOL "...")
+    set(SDL_TEST_LIBRARY OFF CACHE BOOL "...")
+    add_subdirectory(SDL)
 endif()
-set(SDL_TEST OFF CACHE BOOL "...")
-add_subdirectory(SDL)
 
 add_subdirectory(glm)
 

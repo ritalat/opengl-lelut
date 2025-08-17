@@ -44,8 +44,10 @@ endif()
 
 if(UNIX AND NOT EMSCRIPTEN AND NOT ANDROID)
     target_compile_options(mylly PRIVATE "-fvisibility=hidden")
-    target_link_options(mylly PUBLIC "-Wl,--enable-new-dtags")
-    set_target_properties(mylly PROPERTIES INSTALL_RPATH "\${ORIGIN}")
+    if(NOT SYSTEM_SDL)
+        target_link_options(mylly PUBLIC "-Wl,--enable-new-dtags")
+        set_target_properties(mylly PROPERTIES INSTALL_RPATH "\${ORIGIN}")
+    endif()
 endif()
 
 if(MSVC)

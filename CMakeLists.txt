@@ -13,6 +13,7 @@ if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
     set(CMAKE_INSTALL_PREFIX ${CMAKE_SOURCE_DIR}/install CACHE PATH "..." FORCE)
 endif()
 
+set(SYSTEM_SDL OFF CACHE BOOL "...")
 set(USE_GLES OFF CACHE BOOL "...")
 
 if(EMSCRIPTEN OR ANDROID OR USE_GLES)
@@ -25,6 +26,10 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_INSTALL_BINDIR ".")
 set(CMAKE_INSTALL_LIBDIR ".")
+
+if(SYSTEM_SDL)
+    find_package(SDL3 REQUIRED)
+endif()
 
 add_subdirectory(external)
 
@@ -86,9 +91,12 @@ if(EMSCRIPTEN)
     endforeach()
 elseif(NOT ANDROID)
     if(USE_GLES)
-        install(TARGETS ${ES3_SAMPLES} mylly SDL3-shared RUNTIME DESTINATION ".")
+        install(TARGETS ${ES3_SAMPLES} mylly RUNTIME DESTINATION ".")
     else()
-        install(TARGETS ${SAMPLES} mylly SDL3-shared RUNTIME DESTINATION ".")
+        install(TARGETS ${SAMPLES} mylly RUNTIME DESTINATION ".")
+    endif()
+    if(NOT SYSTEM_SDL)
+        install(TARGETS SDL3-shared RUNTIME DESTINATION ".")
     endif()
     if(MINGW)
         if(MINGW_RUNTIME_LIBS)
