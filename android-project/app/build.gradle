@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace "net.ritalat.gllelu"
+    namespace = "net.ritalat.gllelu"
     compileSdkVersion 35
     defaultConfig {
         minSdkVersion 21
@@ -12,7 +12,7 @@ android {
         versionName "1.0"
         externalNativeBuild {
             cmake {
-                arguments "-DANDROID_PLATFORM=android-19", "-DANDROID_STL=c++_shared"
+                arguments "-DANDROID_PLATFORM=android-21", "-DANDROID_STL=c++_shared"
                 abiFilters 'arm64-v8a', 'x86_64'
             }
         }
@@ -32,7 +32,7 @@ android {
         }
     }
     lint {
-        abortOnError false
+        abortOnError = false
     }
 }
 
