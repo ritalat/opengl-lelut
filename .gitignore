@@ -1,6 +1,7 @@
 build*/
 install/
 *.user
+.cache/
 .vs/
 .vscode/
 out/
